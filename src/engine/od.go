@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	outputdir string // Output directory
-	InputFile string
+	OutputDir       string // Output directory
+	InputFile       string
+	InputFileSuffix string
 
 	CacheDir       string
 	SkipExists     bool
@@ -24,16 +25,21 @@ var (
 )
 
 func OD() string {
-	if outputdir == "" {
+	if OutputDir == "" {
 		panic("output not yet initialized")
 	}
-	return outputdir
+	if !strings.HasSuffix(OutputDir, "/") {
+		return OutputDir + "/"
+	}
+	return OutputDir
 }
 
 // InitIO SetOD sets the output directory where auto-saved files will be stored.
 // The -o flag can also be used for this purpose.
 
 func InitIO(mx3Path, od, cachedir string, skipexists, forceclean, hideprogressbar, selftest, syncandlog bool) {
+	InputFile = mx3Path
+	InputFileSuffix = strings.TrimSuffix(mx3Path, ".mx3")
 	CacheDir = cachedir
 	SkipExists = skipexists
 	ForceClean = forceclean
@@ -41,30 +47,33 @@ func InitIO(mx3Path, od, cachedir string, skipexists, forceclean, hideprogressba
 	SelfTest = selftest
 	SyncAndLog = syncandlog
 
-	if outputdir != "" {
+	if OutputDir != "" {
 		panic("output directory already set")
 	}
-	InputFile = mx3Path
-	if !strings.HasSuffix(od, "/") {
-		od += "/"
-	}
-	outputdir = od
-	if strings.HasPrefix(outputdir, "http://") {
-		fsutil.SetWD(outputdir + "/../")
-	}
-	if fsutil.IsDir(od) {
-		// if directory exists and --skip-exist flag is set, skip the directory
-		if SkipExists {
-			log.Log.Warn("Directory `%s` exists, skipping `%s` because of --skip-exist flag.", od, mx3Path)
-			os.Exit(0)
-			// if directory exists and --force-clean flag is set, remove the directory
-		} else if ForceClean {
-			log.Log.Warn("Cleaning `%s`", od)
-			log.Log.PanicIfError(fsutil.Remove(od))
-			log.Log.PanicIfError(fsutil.Mkdir(od))
-		}
+
+	if od == "" {
+		OutputDir = InputFileSuffix + ".zarr"
 	} else {
-		log.Log.PanicIfError(fsutil.Mkdir(od))
+		OutputDir = od
+	}
+	if fsutil.IsDir(OutputDir) {
+		if SkipExists {
+			// if directory exists and --skip-exist flag is set, skip the directory
+			log.Log.Warn("Directory `%s` exists, skipping because of --skip-exist flag.", OutputDir)
+			os.Exit(0)
+		} else if ForceClean {
+			// if directory exists and --force-clean flag is set, remove the directory
+			log.Log.Warn("Cleaning `%s`", OutputDir)
+			log.Log.PanicIfError(fsutil.Remove(OutputDir))
+			log.Log.PanicIfError(fsutil.Mkdir(OutputDir))
+		} else if od != "" {
+			// If the -o directory exists and neither --skip-exist nor --force-clean flag is set, put the output InputFile.zarr in the -o directory
+			OutputDir = od + "/" + InputFileSuffix + ".zarr"
+			log.Log.Warn("Directory `%s` exists, putting output in `%s` because neither --skip-exist nor --force-clean flag is set.", od, OutputDir)
+		}
+	} else if !fsutil.Exists(OutputDir) {
+		// If the -o directory does not exist, create it in the plain -o directory.
+		log.Log.PanicIfError(fsutil.Mkdir(OutputDir))
 	}
 	zarr.InitZgroup("", OD())
 }

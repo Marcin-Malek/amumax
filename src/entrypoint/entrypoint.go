@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -144,9 +143,6 @@ func setupAndServe(flags *flags.Flags, mx3Path string, isInteractive bool) (*scr
 		}
 		inputPath = mx3Path
 		outputPath = flags.OutputDir
-		if outputPath == "" {
-			outputPath = strings.TrimSuffix(mx3Path, ".mx3") + ".zarr"
-		}
 		log.Log.Info("Input file: %s", mx3Path)
 	}
 

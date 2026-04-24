@@ -169,6 +169,31 @@ func (w *bufWriter) Close() error {
 	return w.file.Close()
 }
 
+func PrintTree(path string, indent string) {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		fmt.Printf("%s[Error reading %s: %v]\n", indent, path, err)
+		return
+	}
+
+	for i, entry := range entries {
+		prefix := "├── "
+		if i == len(entries)-1 {
+			prefix = "└── "
+		}
+		fmt.Printf("%s%s%s\n", indent, prefix, entry.Name())
+		if entry.IsDir() {
+			newIndent := indent
+			if i == len(entries)-1 {
+				newIndent += "    "
+			} else {
+				newIndent += "│   "
+			}
+			PrintTree(path+"/"+entry.Name(), newIndent)
+		}
+	}
+}
+
 // Helper function to add the working directory to the path if it's relative.
 func addWorkDir(p string) string {
 	if !filepath.IsAbs(p) {

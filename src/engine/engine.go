@@ -25,7 +25,7 @@ func setBusy(_b bool) {
 
 // CleanExit Cleanly exits the simulation, assuring all output is flushed.
 func CleanExit() {
-	if outputdir == "" {
+	if OutputDir == "" {
 		return
 	}
 	drainOutput()
