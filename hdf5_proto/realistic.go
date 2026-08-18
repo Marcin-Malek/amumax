@@ -16,7 +16,10 @@ func main() {
 	os.Remove(filename)
 
 	fw, err := hdf5.CreateForWrite(filename, hdf5.CreateTruncate)
-	if err != nil { fmt.Println(err); os.Exit(1) }
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	defer fw.Close()
 
 	fw.CreateGroup("/m")
@@ -33,13 +36,18 @@ func main() {
 
 	dims := []uint64{uint64(nSteps), uint64(Nz), uint64(Ny), uint64(Nx), uint64(Nc)}
 	ds, err := fw.CreateDataset("/m/data", hdf5.Float32, dims)
-	if err != nil { fmt.Println("CreateDataset:", err); os.Exit(1) }
+	if err != nil {
+		fmt.Println("CreateDataset:", err)
+		os.Exit(1)
+	}
 	ds.Write(allData)
 	ds.Close()
 
 	// Timestamps
 	times := make([]float64, nSteps)
-	for i := range times { times[i] = float64(i) * 1e-12 }
+	for i := range times {
+		times[i] = float64(i) * 1e-12
+	}
 	tds, _ := fw.CreateDataset("/m/t", hdf5.Float64, []uint64{uint64(nSteps)})
 	tds.Write(times)
 	tds.Close()

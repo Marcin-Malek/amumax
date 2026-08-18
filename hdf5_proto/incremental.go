@@ -10,7 +10,10 @@ import (
 func main() {
 	os.Remove("test2.h5")
 	fw, err := hdf5.CreateForWrite("test2.h5", hdf5.CreateTruncate)
-	if err != nil { fmt.Println(err); os.Exit(1) }
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	defer fw.Close()
 
 	// Test 1: dataset in group (contiguous)
@@ -39,7 +42,7 @@ func main() {
 		hdf5.WithChunkDims([]uint64{2, 3}),
 		hdf5.WithGZIPCompression(1),
 	)
-	ds4.Write([]float32{1,2,3, 4,5,6, 7,8,9, 10,11,12})
+	ds4.Write([]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 	ds4.Close()
 
 	// Test 5: chunked in group
